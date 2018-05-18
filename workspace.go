@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"go/build"
 	"log"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -11,6 +13,9 @@ import (
 	"github.com/shurcooL/vcsstate"
 	"golang.org/x/tools/go/vcs"
 )
+
+var goPath = filepath.Clean(os.Getenv("GOPATH"))
+var goPathSrcSlash = filepath.Join(goPath, "src", "")
 
 // workspace is a Go workspace environment; each repo has local and remote components.
 type workspace struct {
@@ -222,6 +227,10 @@ func (*workspace) computeVCSState(r *Repo) {
 	}
 	if rr, err := vcs.RepoRootForImportPath(r.Root, false); err == nil {
 		r.Remote.RepoURL = rr.Repo
+	}
+
+	if strings.HasPrefix(r.Path, goPathSrcSlash) {
+		r.Remote.RepoURL = r.Path[len(goPathSrcSlash):]
 	}
 }
 
